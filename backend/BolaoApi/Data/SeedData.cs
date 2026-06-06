@@ -25,7 +25,7 @@ public static class SeedData
             };
             context.Users.Add(adminUser);
             await context.SaveChangesAsync();
-        }
+        }   
 
         // Seed Matches
         if (!await context.Matches.AnyAsync())
@@ -33,7 +33,7 @@ public static class SeedData
             var matches = new List<Match>
             {
                 // [RODADA 1]
-                new() { TimeA = "México", TimeB = "África do Sul", Rodada = 1, Status = MatchStatus.Agendado, KickOffTime = new DateTime(2026, 6, 11, 19, 0, 0, DateTimeKind.Utc) },
+                new() { TimeA = "México", TimeB = "África do Sul", Rodada = 1, Status = MatchStatus.Agendado, KickOffTime = DateTime.UtcNow.AddHours(2) },
                 new() { TimeA = "Coreia do Sul", TimeB = "República Tcheca", Rodada = 1, Status = MatchStatus.Agendado, KickOffTime = new DateTime(2026, 6, 12, 2, 0, 0, DateTimeKind.Utc) },
                 new() { TimeA = "Canadá", TimeB = "Bósnia", Rodada = 1, Status = MatchStatus.Agendado, KickOffTime = new DateTime(2026, 6, 12, 19, 0, 0, DateTimeKind.Utc) },
                 new() { TimeA = "Estados Unidos", TimeB = "Paraguai", Rodada = 1, Status = MatchStatus.Agendado, KickOffTime = new DateTime(2026, 6, 13, 1, 0, 0, DateTimeKind.Utc) },

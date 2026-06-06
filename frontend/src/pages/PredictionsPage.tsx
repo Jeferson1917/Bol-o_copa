@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Target, Lock, Unlock, Check, AlertCircle, Eye } from 'lucide-react';
+import { showWarning, showError, showSuccess } from '../services/notifications';
 
 interface Prediction {
   id: number;
@@ -83,7 +84,7 @@ export const PredictionsPage: React.FC = () => {
   const handleSave = async (matchId: number) => {
     const scores = editingScores[matchId];
     if (!scores || scores.a === '' || scores.b === '') {
-      alert('Por favor, preencha ambos os palpites.');
+      showWarning('Por favor, preencha ambos os palpites.');
       return;
     }
 
@@ -95,18 +96,16 @@ export const PredictionsPage: React.FC = () => {
         palpiteGolsB: parseInt(scores.b, 10),
       });
 
-      // Mark success
       setSuccessMap(prev => ({ ...prev, [matchId]: true }));
-      setTimeout(() => {
-        setSuccessMap(prev => ({ ...prev, [matchId]: false }));
-      }, 2000);
+      showSuccess('Palpite salvo com sucesso!');
 
       // Refresh list to update ID if it was newly created
       const response = await api.get(`/api/predictions?rodada=${round}`);
       setPredictions(response.data);
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.Message || 'Erro ao salvar o palpite.');
+      const message = err.response?.data?.Message || 'Erro ao salvar o palpite.';
+      showError(message);
     } finally {
       setSavingMap(prev => ({ ...prev, [matchId]: false }));
     }
@@ -317,13 +316,16 @@ export const PredictionsPage: React.FC = () => {
                     {editable && (
                       <button
                         onClick={() => handleSave(match.matchId)}
-                        disabled={savingMap[match.matchId]}
-                        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 cursor-pointer disabled:opacity-50 transition"
+                        disabled={savingMap[match.matchId] || successMap[match.matchId]}
+                        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 cursor-pointer disabled:opacity-50 transition disabled:cursor-not-allowed"
                       >
                         {savingMap[match.matchId] ? (
                           <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                         ) : successMap[match.matchId] ? (
-                          <Check className="h-3.5 w-3.5 text-white" />
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            Palpite registrado
+                          </>
                         ) : (
                           'Salvar'
                         )}

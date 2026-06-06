@@ -142,3 +142,4 @@ C:\Users\jefin\.gemini\antigravity\scratch\bolao-copa-2026\backend\BolaoApi\obj\
 C:\Users\jefin\.gemini\antigravity\scratch\bolao-copa-2026\backend\BolaoApi\obj\Debug\net8.0\BolaoApi.pdb
 C:\Users\jefin\.gemini\antigravity\scratch\bolao-copa-2026\backend\BolaoApi\obj\Debug\net8.0\BolaoApi.genruntimeconfig.cache
 C:\Users\jefin\.gemini\antigravity\scratch\bolao-copa-2026\backend\BolaoApi\obj\Debug\net8.0\ref\BolaoApi.dll
+C:\Users\jefin\.gemini\antigravity\scratch\bolao-copa-2026\backend\BolaoApi\obj\Debug\net8.0\BolaoApi.sourcelink.json

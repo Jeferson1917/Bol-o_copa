@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { showWarning, showError } from '../services/notifications';
 
 interface Match {
   id: number;
@@ -22,6 +23,12 @@ export const AdminPage: React.FC = () => {
   // Track input state for each match
   const [scores, setScores] = useState<Record<number, { a: string; b: string }>>({});
   const [submittingMap, setSubmittingMap] = useState<Record<number, boolean>>({});
+
+  // Estado para controlar o nosso Modal Customizado Bonitão
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; match: Match | null }>({
+    isOpen: false,
+    match: null,
+  });
 
   const fetchMatches = async () => {
     try {
@@ -60,18 +67,26 @@ export const AdminPage: React.FC = () => {
     }));
   };
 
-  const handleFinalize = async (match: Match) => {
+  // Botão da lista apenas abre o modal
+  const handleFinalizeClick = (match: Match) => {
     const score = scores[match.id];
     if (!score || score.a === '' || score.b === '') {
-      alert('Por favor, informe o placar final completo.');
+      showWarning('Por favor, informe o placar final completo.');
       return;
     }
+    // Abre o modal passando qual jogo será finalizado
+    setConfirmModal({ isOpen: true, match });
+  };
 
-    const confirmMsg = `Tem certeza que deseja finalizar o jogo ${match.timeA} x ${match.timeB} com o placar de ${score.a} a ${score.b}?\n\nEsta ação calculará os pontos de todos os usuários imediatamente e NÃO pode ser desfeita!`;
-    if (!window.confirm(confirmMsg)) {
-      return;
-    }
+  // Ação real que acontece ao confirmar dentro do modal
+  const executeFinalize = async () => {
+    const match = confirmModal.match;
+    if (!match) return;
 
+    const score = scores[match.id];
+    
+    // Fecha o modal
+    setConfirmModal({ isOpen: false, match: null });
     setSubmittingMap((prev) => ({ ...prev, [match.id]: true }));
     setError('');
     setSuccessMsg('');
@@ -83,15 +98,23 @@ export const AdminPage: React.FC = () => {
       });
 
       setSuccessMsg(response.data.Message || 'Jogo finalizado e pontos distribuídos!');
-      
-      // Auto clear message
       setTimeout(() => setSuccessMsg(''), 5000);
       
-      // Refresh match list
-      await fetchMatches();
+      // Correção Ninja: Remove o jogo agendado da lista local sem dar reload na página inteira!
+      setMatches((prevMatches) => {
+        return prevMatches.map(m => {
+          if (m.id === match.id) {
+            return { ...m, status: 1, golsTimeA: parseInt(score.a, 10), golsTimeB: parseInt(score.b, 10) };
+          }
+          return m;
+        });
+      });
+
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.Message || 'Erro ao finalizar a partida.');
+      const message = err.response?.data?.Message || 'Erro ao finalizar a partida.';
+      setError(message);
+      showError(message);
     } finally {
       setSubmittingMap((prev) => ({ ...prev, [match.id]: false }));
     }
@@ -113,7 +136,7 @@ export const AdminPage: React.FC = () => {
   const finalizedMatches = matches.filter(m => m.status === 1);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 relative">
       {/* Title */}
       <div className="mb-8 text-center sm:text-left">
         <h1 className="flex items-center justify-center sm:justify-start gap-3 text-3xl font-extrabold text-white">
@@ -206,7 +229,7 @@ export const AdminPage: React.FC = () => {
 
                     <div className="mt-4 pt-4 border-t border-slate-850 flex justify-end">
                       <button
-                        onClick={() => handleFinalize(match)}
+                        onClick={() => handleFinalizeClick(match)}
                         disabled={submittingMap[match.id]}
                         className="rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 px-4 py-2 text-xs font-bold text-white transition cursor-pointer"
                       >
@@ -255,6 +278,69 @@ export const AdminPage: React.FC = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL CUSTOMIZADO (SUBSTITUTO DO WINDOW.CONFIRM) --- */}
+      {confirmModal.isOpen && confirmModal.match && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 p-6 text-left align-middle shadow-2xl transition-all">
+            
+            {/* Header do Modal */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
+                  <AlertTriangle className="h-6 w-6 text-amber-500" />
+                </div>
+                <h3 className="text-lg font-bold leading-6 text-white">
+                  Confirmar Encerramento
+                </h3>
+              </div>
+              <button
+                onClick={() => setConfirmModal({ isOpen: false, match: null })}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Corpo do Modal */}
+            <div className="mt-4">
+              <p className="text-sm text-slate-400 mb-4">
+                Você está prestes a finalizar permanentemente a partida:
+              </p>
+              
+              <div className="flex items-center justify-center gap-4 bg-slate-950 border border-slate-800 rounded-xl p-4 mb-4">
+                <span className="text-base font-bold text-white flex-1 text-right">{confirmModal.match.timeA}</span>
+                <span className="text-xl font-black text-amber-500 px-3 py-1 bg-amber-500/10 rounded-lg">
+                  {scores[confirmModal.match.id]?.a} <span className="text-slate-600 text-sm mx-1">x</span> {scores[confirmModal.match.id]?.b}
+                </span>
+                <span className="text-base font-bold text-white flex-1 text-left">{confirmModal.match?.timeB}</span>
+              </div>
+
+              <p className="text-sm text-amber-500/80 font-medium bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
+                Atenção: Esta ação calculará os pontos de todos os usuários imediatamente e não pode ser desfeita.
+              </p>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-lg border border-slate-700 bg-transparent px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 focus:outline-none transition"
+                onClick={() => setConfirmModal({ isOpen: false, match: null })}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-lg border border-transparent bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-500 focus:outline-none transition cursor-pointer"
+                onClick={executeFinalize}
+              >
+                Sim, Encerrar Jogo
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BolaoApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+60fd1d925350dd95c7b81d2e6cb320beef29e58b")]
 [assembly: System.Reflection.AssemblyProductAttribute("BolaoApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BolaoApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
