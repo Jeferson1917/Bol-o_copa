@@ -1,2 +1,0 @@
-[phases.build]
-cmds = ['dotnet restore', 'dotnet publish -c Release -o out']
