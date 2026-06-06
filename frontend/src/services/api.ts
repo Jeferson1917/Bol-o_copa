@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '', // Relative because of Vite proxy configuration
+  // Na nuvem (Vercel) ele usa o link da Railway. Localmente, continua usando o proxy do Vite ('').
+  baseURL: import.meta.env.VITE_API_URL || '', 
 });
 
 // Request interceptor to add authorization token
