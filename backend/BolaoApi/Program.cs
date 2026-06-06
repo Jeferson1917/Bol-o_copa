@@ -109,12 +109,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// CORS Configuration
+// CORS Configuration - AGORA LIBERADO PARA A VERCEL!
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "http://127.0.0.1:5173",
+                "https://bol-o-copa.vercel.app" // <- Link da nuvem adicionado aqui!
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
